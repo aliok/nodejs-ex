@@ -35,20 +35,87 @@ const typeDefs = gql`
 
     type Query {
         hello: String @hasRole(role: "admin")
+        fails: String
+        getUser(id: Int): User
+    }
+    
+    type Mutation {
+        createUser(name: String): User
+        createMeme(userId: Int, url: String): Meme
+    }
+
+    type User {
+        id: Int!
+        name: String!
+        memes: [Meme]!
+    }
+    
+    type Meme {
+        id: Int!
+        url: String
     }
 `;
+
+const users = [];
 
 // Resolver functions. This is our business logic
 let resolvers = {
     Query: {
         hello: (obj, args, context, info) => {
+            const name = context.auth.accessToken.content.name || 'world';
+            return `Hello ${name} from ${context.serverName}`;
+        },
+        fails: (obj, args, context, info) => {
+            throw new Error('Fails on purpose')
+        },
+        getUser: (obj, args, context, info) => {
+            const user = users[args.id];
+            if (user) {
+                return {
+                    id: user.id,
+                    name: user.name
+                }
+            } else {
+                return null
+            }
+        }
+    },
+    Mutation: {
+        createUser: (obj, args, context, info) => {
+            const id = users.length;
+            const user = {
+                id,
+                name: args.name,
+                memes: []
+            };
+            users.push(user);
+            return {
+                id: user.id,
+                name: user.name
+            }
+        },
 
-            // log some of the auth related info added to the context
-            console.log(context.auth.isAuthenticated())
-            console.log(context.auth.accessToken.content.name)
-
-            const name = context.auth.accessToken.content.name || 'world'
-            return `Hello ${name} from ${context.serverName}`
+        createMeme: (obj, args, context, info) => {
+            const user = users[args.userId];
+            if(!user){
+                return null;
+            } else {
+                user.memes = user.memes || [];
+                meme = {
+                    id: args.userId * 1000000 + user.memes.length,
+                    url: args.url
+                };
+                user.memes.push(meme);
+                return meme;
+            }
+        }
+    },
+    User: {
+        memes: (obj, args, context, info) => {
+            if (!obj || !users[obj.id]) {
+                return []
+            }
+            return users[obj.id].memes
         }
     }
 };

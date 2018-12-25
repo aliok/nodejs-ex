@@ -735,15 +735,14 @@
     {
       "id": "9e4ad964-80b3-4daf-8917-7801f892ceef",
       "clientId": "voyager-testing",
-      "rootUrl": "localhost:4000",
-      "baseUrl": "localhost:4000",
+      "rootUrl": "",
+      "baseUrl": "",
       "surrogateAuthRequired": false,
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
       "redirectUris": [
-        "http://localhost:4000",
-        "http://localhost:4000/*"
+        "*"
       ],
       "webOrigins": [
         "*"

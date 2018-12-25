@@ -51,3 +51,21 @@ query hello {
 
 
 # OpenShift
+Add aerogearcatalog to ASB config
+Set other required config in ASB configmap
+
+Provision Keycloak
+Import the `realm-export.json` (same as above in "Local")
+Create user (same as above in "Local")
+
+In OpenShift console:
+* Add to Project
+* Browse Catalog
+* Languages --> Javascript --> Node.js
+* Try Sample Repository, but with Git Repository https://github.com/aliok/nodejs-ex.git
+* advanced options
+* Deployment Configuration --> create env var KEYCLOAK_ROUTE: <your Keycloak URL, e.g. https://keycloak-5ddec1-bbb.apps.auditlogs-27e0.openshiftworkshop.com>
+* Create
+* Wait for the build and the deployment to finish
+
+Go to <node app route>/graphql and do the same as local (/token etc.)  
