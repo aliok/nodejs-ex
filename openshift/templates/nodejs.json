@@ -232,6 +232,12 @@
       "value": "openshift"
     },
     {
+      "name": "KEYCLOAK_ROUTE",
+      "displayName": "Keycloak Route",
+      "description": "Keycloak Route w/o slash at the end eg. https://keycloak-5ddec1-bbb.apps.auditlogs-27e0.openshiftworkshop.com",
+      "required": true
+    },
+    {
       "name": "NODEJS_VERSION",
       "displayName": "Version of NodeJS Image",
       "description": "Version of NodeJS image to be used (6, 8, or latest).",

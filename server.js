@@ -12,6 +12,10 @@ Object.assign=require('object-assign');
 
 const keycloakConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, './config/keycloak.json')));
 
+if(process.env.KEYCLOAK_ROUTE){
+    keycloakConfig['auth-server-url'] = process.env.KEYCLOAK_ROUTE + "/auth"
+}
+
 
 // This is our Schema Definition Language (SDL)
 const typeDefs = gql`
