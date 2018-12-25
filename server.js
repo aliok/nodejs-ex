@@ -1,8 +1,52 @@
 var express = require('express'),
     app     = express(),
     morgan  = require('morgan');
+
+const { makeExecutableSchema } = require('graphql-tools');
+const { ApolloVoyagerServer, gql } = require('@aerogear/apollo-voyager-server');
     
 Object.assign=require('object-assign');
+
+
+const typeDefs = gql`
+    type Query {
+        hello: String
+    }
+`;
+
+// Resolver functions. This is our business logic
+const resolvers = {
+    Query: {
+        hello: (obj, args, context, info) => {
+
+            // we can access the request object provided by the Voyager framework
+            console.log(context.request.body)
+
+            // we can access the context added below also
+            console.log(context.serverName)
+            return `Hello world from ${context.serverName}`
+        }
+    }
+};
+
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+// The context is a function or object that can add some extra data
+// That will be available via the `context` argument the resolver functions
+const context = ({ req }) => {
+    return {
+        serverName: 'Voyager Server'
+    }
+};
+
+// Initialize the apollo voyager server with our schema and context
+const server = ApolloVoyagerServer({
+    schema,
+    context
+});
+
+server.applyMiddleware({ app });
+
 
 app.engine('html', require('ejs').renderFile);
 app.use(morgan('combined'));
