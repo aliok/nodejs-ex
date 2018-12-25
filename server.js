@@ -2,34 +2,60 @@ var express = require('express'),
     app     = express(),
     morgan  = require('morgan');
 
+const fs = require('fs');
+const path = require('path');
 const { makeExecutableSchema } = require('graphql-tools');
-const { ApolloVoyagerServer, gql } = require('@aerogear/apollo-voyager-server');
+const { ApolloVoyagerServer, voyagerResolvers, gql } = require('@aerogear/apollo-voyager-server');
+const { KeycloakSecurityService } = require('@aerogear/apollo-voyager-keycloak');
     
 Object.assign=require('object-assign');
 
+const keycloakConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, './config/keycloak.json')));
 
+
+// This is our Schema Definition Language (SDL)
 const typeDefs = gql`
+
+    # In the older version of graphql in the data sync server
+    # We did not have to define the directive here.
+    # For some reason we do now, otherwise makeExecutableSchema does not work.
+
+    directive @hasRole(role: [String]) on FIELD | FIELD_DEFINITION
+
     type Query {
-        hello: String
+        hello: String @hasRole(role: "admin")
     }
 `;
 
 // Resolver functions. This is our business logic
-const resolvers = {
+let resolvers = {
     Query: {
         hello: (obj, args, context, info) => {
 
-            // we can access the request object provided by the Voyager framework
-            console.log(context.request.body)
+            // log some of the auth related info added to the context
+            console.log(context.auth.isAuthenticated())
+            console.log(context.auth.accessToken.content.name)
 
-            // we can access the context added below also
-            console.log(context.serverName)
-            return `Hello world from ${context.serverName}`
+            const name = context.auth.accessToken.content.name || 'world'
+            return `Hello ${name} from ${context.serverName}`
         }
     }
 };
 
-const schema = makeExecutableSchema({ typeDefs, resolvers });
+resolvers = voyagerResolvers(resolvers, { auditLogging: true });
+
+// Initialize the keycloak service
+const keycloakService = new KeycloakSecurityService(keycloakConfig);
+
+// get the keycloak context provider and directives
+const schemaDirectives = keycloakService.getSchemaDirectives();
+
+const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
+    // add the keycloak directives
+    schemaDirectives
+});
 
 // The context is a function or object that can add some extra data
 // That will be available via the `context` argument the resolver functions
@@ -39,12 +65,18 @@ const context = ({ req }) => {
     }
 };
 
-// Initialize the apollo voyager server with our schema and context
-const server = ApolloVoyagerServer({
+const apolloConfig = {
     schema,
     context
-});
+}
 
+const voyagerConfig = {
+    securityService: keycloakService
+}
+
+const server = ApolloVoyagerServer(apolloConfig, voyagerConfig)
+
+keycloakService.applyAuthMiddleware(app)
 server.applyMiddleware({ app });
 
 
