@@ -16,6 +16,8 @@ if(process.env.KEYCLOAK_ROUTE){
     keycloakConfig['auth-server-url'] = process.env.KEYCLOAK_ROUTE + "/auth"
 }
 
+console.log("Using Keycloak route " + keycloakConfig['auth-server-url']);
+
 
 // This is our Schema Definition Language (SDL)
 const typeDefs = gql`
