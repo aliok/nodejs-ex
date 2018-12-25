@@ -208,6 +208,10 @@
                     }
                 },
                 "env": [
+                  {
+                    "name": "KEYCLOAK_ROUTE",
+                    "value": "${KEYCLOAK_ROUTE}"
+                  }
                 ]
               }
             ]
