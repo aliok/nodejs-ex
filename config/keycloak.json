@@ -5,5 +5,6 @@
   "resource": "voyager-testing",
   "public-client": true,
   "use-resource-role-mappings": true,
-  "confidential-port": 0
+  "confidential-port": 0  ,
+  "disable-trust-manager": true
 }
