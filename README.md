@@ -63,9 +63,18 @@ In OpenShift console:
 * Browse Catalog
 * Languages --> Javascript --> Node.js
 * Try Sample Repository, but with Git Repository https://github.com/aliok/nodejs-ex.git
-* advanced options
+* Advanced options
 * Deployment Configuration --> create env var KEYCLOAK_ROUTE: <your Keycloak URL, e.g. https://keycloak-5ddec1-bbb.apps.auditlogs-27e0.openshiftworkshop.com>
 * Create
 * Wait for the build and the deployment to finish
 
-Go to <node app route>/graphql and do the same as local (/token etc.)  
+Go to <node app route>/graphql and do the same as local (/token etc.)
+
+
+
+
+
+# Creating random data
+
+See https://github.com/aliok/aerogear-sync-metrics-generator
+Adapt the `url` and the `options['headers']` in `index.js.
