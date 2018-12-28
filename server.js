@@ -9,7 +9,8 @@ const path = require('path');
 const { makeExecutableSchema } = require('graphql-tools');
 const { ApolloVoyagerServer, voyagerResolvers, gql } = require('@aerogear/apollo-voyager-server');
 const { KeycloakSecurityService } = require('@aerogear/apollo-voyager-keycloak');
-    
+const { applyMetricsMiddleware, enableDefaultMetricsCollection, applyResponseLoggingMetricsMiddleware } = require('@aerogear/apollo-voyager-metrics');
+
 Object.assign=require('object-assign');
 
 const keycloakConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, './config/keycloak.json')));
@@ -120,7 +121,8 @@ let resolvers = {
     }
 };
 
-resolvers = voyagerResolvers(resolvers, { auditLogging: true });
+enableDefaultMetricsCollection()
+resolvers = voyagerResolvers(resolvers, { auditLogging: true, metrics:true });
 
 // Initialize the keycloak service
 const keycloakService = new KeycloakSecurityService(keycloakConfig);
@@ -156,6 +158,9 @@ const server = ApolloVoyagerServer(apolloConfig, voyagerConfig)
 
 keycloakService.applyAuthMiddleware(app)
 server.applyMiddleware({ app });
+
+applyResponseLoggingMetricsMiddleware(app)
+applyMetricsMiddleware(app)
 
 
 app.engine('html', require('ejs').renderFile);
