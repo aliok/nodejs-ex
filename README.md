@@ -51,10 +51,27 @@ query hello {
 
 
 # OpenShift
-Add aerogearcatalog to ASB config
-Set other required config in ASB configmap
+Login to OpenShift console as cluster admin
+Go to "openshift-ansible-service-broker" project
+Edit "broker-config" config map.
+Add this to `registry`:
+```
+- type: dockerhub
+  name: aerogearcatalog
+  org: aerogearcatalog
+  tag: latest
+  white_list:
+    - ".*-apb$"
+```
+Change `openshift.sandbox_role` from `edit` to `admin`.
+Change `image_pull_policy` from `IfNotPresent` to `Always`.
+Save the config map.
+Go to `asb` deployment config and press `Deploy`.
+Wait until the ASB is deployed.
+Logout.
 
-Provision Keycloak
+Login with a regular user.
+Provision Keycloak using the "Identity Management" ABP. If it is not shown, wait until ASB fetches it.
 Import the `realm-export.json` (same as above in "Local")
 Create user (same as above in "Local")
 
