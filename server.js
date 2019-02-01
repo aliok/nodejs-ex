@@ -9,6 +9,7 @@ const path = require('path');
 const {VoyagerServer, gql} = require('@aerogear/voyager-server')
 const {KeycloakSecurityService} = require('@aerogear/apollo-voyager-keycloak');
 const auditLogger = require('@aerogear/voyager-audit')
+const metrics = require('@aerogear/voyager-metrics')
 
 Object.assign = require('object-assign');
 
@@ -149,6 +150,7 @@ const apolloConfig = {
 
 const voyagerConfig = {
     auditLogger,
+    metrics,
     securityService: keycloakService
 };
 
@@ -156,6 +158,7 @@ const voyagerConfig = {
 const server = VoyagerServer(apolloConfig, voyagerConfig)
 
 keycloakService.applyAuthMiddleware(app)
+metrics.applyMetricsMiddlewares(app)
 server.applyMiddleware({app})
 
 // error handling
