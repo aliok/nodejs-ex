@@ -1,20 +1,20 @@
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 var express = require('express'),
-    app     = express(),
-    morgan  = require('morgan');
+    app = express(),
+    morgan = require('morgan');
 
 const fs = require('fs');
 const path = require('path');
-const { VoyagerServer, gql } = require('@aerogear/voyager-server')
-const { KeycloakSecurityService } = require('@aerogear/apollo-voyager-keycloak');
+const {VoyagerServer, gql} = require('@aerogear/voyager-server')
+const {KeycloakSecurityService} = require('@aerogear/apollo-voyager-keycloak');
 const auditLogger = require('@aerogear/voyager-audit')
 
-Object.assign=require('object-assign');
+Object.assign = require('object-assign');
 
 const keycloakConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, './config/keycloak.json')));
 
-if(process.env.KEYCLOAK_ROUTE){
+if (process.env.KEYCLOAK_ROUTE) {
     keycloakConfig['auth-server-url'] = process.env.KEYCLOAK_ROUTE + "/auth"
 }
 
@@ -38,10 +38,11 @@ const typeDefs = gql`
         fails: String
         getUser(id: Int): User
     }
-    
+
     type Mutation {
         createUser(name: String): User
         createMeme(userId: Int, url: String): Meme
+        createConflict: String
     }
 
     type User {
@@ -49,7 +50,7 @@ const typeDefs = gql`
         name: String!
         memes: [Meme]!
     }
-    
+
     type Meme {
         id: Int!
         url: String
@@ -97,7 +98,7 @@ let resolvers = {
 
         createMeme: (obj, args, context, info) => {
             const user = users[args.userId];
-            if(!user){
+            if (!user) {
                 return null;
             } else {
                 user.memes = user.memes || [];
@@ -108,6 +109,14 @@ let resolvers = {
                 user.memes.push(meme);
                 return meme;
             }
+        },
+
+        createConflict: (obj, args, context, info) => {
+            const {conflict} = context
+            const a = {foo: "bar", version: 10};
+            const b = {foo: "baz", version: 1};
+            conflict.hasConflict(a, b, obj, args, context, info);
+            return "conflict"
         }
     },
     User: {
@@ -122,7 +131,7 @@ let resolvers = {
 
 // The context is a function or object that can add some extra data
 // That will be available via the `context` argument the resolver functions
-const context = ({ req }) => {
+const context = ({req}) => {
     return {
         serverName: 'Voyager Server'
     }
@@ -147,16 +156,16 @@ const voyagerConfig = {
 const server = VoyagerServer(apolloConfig, voyagerConfig)
 
 keycloakService.applyAuthMiddleware(app)
-server.applyMiddleware({ app })
+server.applyMiddleware({app})
 
 // error handling
-app.use(function(err, req, res, next){
-  console.error(err.stack);
-  res.status(500).send('Something bad happened!');
+app.use(function (err, req, res, next) {
+    console.error(err.stack);
+    res.status(500).send('Something bad happened!');
 });
 
 const port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
-    ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
+    ip = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 
 
 app.listen(port, ip);
