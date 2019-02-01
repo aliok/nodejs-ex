@@ -6,10 +6,9 @@ var express = require('express'),
 
 const fs = require('fs');
 const path = require('path');
-const { makeExecutableSchema } = require('graphql-tools');
-const { ApolloVoyagerServer, voyagerResolvers, gql } = require('@aerogear/apollo-voyager-server');
+const { VoyagerServer, gql } = require('@aerogear/voyager-server')
 const { KeycloakSecurityService } = require('@aerogear/apollo-voyager-keycloak');
-const { applyMetricsMiddleware, enableDefaultMetricsCollection, applyResponseLoggingMetricsMiddleware } = require('@aerogear/apollo-voyager-metrics');
+const auditLogger = require('@aerogear/voyager-audit')
 
 Object.assign=require('object-assign');
 
@@ -121,22 +120,6 @@ let resolvers = {
     }
 };
 
-enableDefaultMetricsCollection()
-resolvers = voyagerResolvers(resolvers, { auditLogging: true, metrics:true });
-
-// Initialize the keycloak service
-const keycloakService = new KeycloakSecurityService(keycloakConfig);
-
-// get the keycloak context provider and directives
-const schemaDirectives = keycloakService.getSchemaDirectives();
-
-const schema = makeExecutableSchema({
-    typeDefs,
-    resolvers,
-    // add the keycloak directives
-    schemaDirectives
-});
-
 // The context is a function or object that can add some extra data
 // That will be available via the `context` argument the resolver functions
 const context = ({ req }) => {
@@ -145,43 +128,36 @@ const context = ({ req }) => {
     }
 };
 
+// Initialize the keycloak service
+const keycloakService = new KeycloakSecurityService(keycloakConfig);
+
+
 const apolloConfig = {
-    schema,
+    typeDefs,
+    resolvers,
     context
-}
+};
 
 const voyagerConfig = {
+    auditLogger,
     securityService: keycloakService
-}
+};
 
-const server = ApolloVoyagerServer(apolloConfig, voyagerConfig)
+// Initialize the voyager server with our schema and context
+const server = VoyagerServer(apolloConfig, voyagerConfig)
 
 keycloakService.applyAuthMiddleware(app)
-server.applyMiddleware({ app });
-
-applyResponseLoggingMetricsMiddleware(app)
-applyMetricsMiddleware(app)
-
-
-app.engine('html', require('ejs').renderFile);
-app.use(morgan('combined'));
-
-var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
-    ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
-
-app.get('/', function (req, res) {
-    res.render('index.html', { pageCountMessage : null});
-});
-
-app.get('/pagecount', function (req, res) {
-    res.send('{ pageCount: -1 }');
-});
+server.applyMiddleware({ app })
 
 // error handling
 app.use(function(err, req, res, next){
   console.error(err.stack);
   res.status(500).send('Something bad happened!');
 });
+
+const port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
+    ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
+
 
 app.listen(port, ip);
 console.log('Server running on http://%s:%s', ip, port);
