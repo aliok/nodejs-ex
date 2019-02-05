@@ -7,7 +7,7 @@ var express = require('express'),
 const fs = require('fs');
 const path = require('path');
 const {VoyagerServer, gql} = require('@aerogear/voyager-server')
-const {KeycloakSecurityService} = require('@aerogear/apollo-voyager-keycloak');
+const {KeycloakSecurityService} = require('@aerogear/voyager-keycloak');
 const auditLogger = require('@aerogear/voyager-audit')
 const metrics = require('@aerogear/voyager-metrics')
 
