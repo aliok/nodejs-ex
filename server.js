@@ -157,7 +157,7 @@ const voyagerConfig = {
 // Initialize the voyager server with our schema and context
 const server = VoyagerServer(apolloConfig, voyagerConfig)
 
-keycloakService.applyAuthMiddleware(app)
+keycloakService.applyAuthMiddleware(app, { tokenEndpoint: true })
 metrics.applyMetricsMiddlewares(app)
 server.applyMiddleware({app})
 

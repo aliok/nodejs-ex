@@ -9,3 +9,14 @@ services:
       DB_VENDOR: h2
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
+  prom:
+    image: prom/prometheus
+    volumes:
+     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command: "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+     - 9090:9090
+  nodeex:
+    image: nodeex
+    ports:
+      - 4000:4000
